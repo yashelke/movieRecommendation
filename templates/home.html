@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MovieBix</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      /* Base Theme (light) */
+      body {
+        background: linear-gradient(
+          135deg,
+          #f8f9ff 0%,
+          #eef2ff 50%,
+          #fef6ff 100%
+        );
+        color: #222;
+      }
+
+      /* Navbar Brand Styles */
+      .navbar-brand svg {
+        width: 40px;
+        height: 35px;
+        margin-right: 12px;
+        fill: #667eea;
+        transition: fill 0.3s ease;
+      }
+
+      #title-navbar {
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1rem 0;
+      }
+
+      #title-navbar .container-fluid {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      #title-navbar .navbar-brand {
+        font-family: "Courier New", Courier, monospace;
+        color: #333;
+        font-size: 2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      #title-navbar .navbar-brand:hover {
+        color: #667eea;
+      }
+
+      #title-navbar .navbar-brand:hover svg {
+        fill: #764ba2;
+      }
+
+      /* Theme Dropdown Styles */
+      .theme-dropdown .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 0.5rem 1.2rem;
+        font-weight: 600;
+        border-radius: 24px;
+        transition: all 0.3s ease;
+      }
+
+      .theme-dropdown .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .theme-dropdown .dropdown-menu {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border: none;
+        margin-top: 0.5rem;
+      }
+
+      .theme-dropdown .dropdown-item {
+        padding: 0.6rem 1.2rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .theme-dropdown .dropdown-item:hover {
+        background-color: #667eea;
+        color: white;
+        transform: translateX(5px);
+      }
+
+      .input-group .form-control {
+        border-top-left-radius: 50px;
+        border-bottom-left-radius: 50px;
+        border-right: none;
+        border: 2px solid black;
+      }
+
+      /* Nav Tabs Styling */
+      .nav-tabs {
+        border: none;
+      }
+
+      .nav-tabs .nav-link {
+        border: none;
+        color: #667eea;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-tabs .nav-link:hover {
+        background-color: rgba(102, 126, 234, 0.1);
+        color: #764ba2;
+      }
+
+      .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      /* Responsive Styles */
+      @media (max-width: 768px) {
+        #title-navbar {
+          padding: 0.5rem 0;
+        }
+
+        #title-navbar .container-fluid {
+          flex-wrap: wrap;
+          padding: 0 1rem;
+        }
+
+        #title-navbar .navbar-brand {
+          font-size: 1.3rem;
+        }
+
+        .navbar-brand svg {
+          width: 28px;
+          height: 24px;
+          margin-right: 8px;
+        }
+
+        .navbar-toggler {
+          border: none;
+          padding: 0.25rem 0.5rem;
+        }
+
+        .navbar-toggler:focus {
+          box-shadow: none;
+        }
+
+        .navbar-collapse {
+          width: 100%;
+          margin-top: 1rem;
+        }
+
+        .nav-tabs {
+          width: 100%;
+          justify-content: center;
+          margin-bottom: 0.5rem;
+        }
+
+        .nav-tabs .nav-link {
+          padding: 0.4rem 0.8rem;
+          font-size: 0.9rem;
+        }
+
+        .nav-tabs .nav-link svg {
+          width: 14px;
+          height: 14px;
+        }
+
+        .theme-dropdown {
+          width: 100%;
+          text-align: center;
+          margin-top: 0.5rem;
+        }
+
+        .theme-dropdown .btn {
+          padding: 0.4rem 1rem;
+          font-size: 0.9rem;
+          width: auto;
+        }
+
+        .grid-section {
+          grid-template-columns: 1fr !important;
+          min-height: calc(100vh - 120px);
+        }
+
+        .left-grid {
+          width: 100%;
+          height: auto;
+          max-height: 50vh;
+          position: relative;
+        }
+
+        .left-grid.collapse:not(.show) {
+          height: 0;
+        }
+
+        .right-grid {
+          height: auto;
+          min-height: calc(100vh - 120px);
+        }
+      }
+
+      /* Grid Section Styling */
+      .grid-section {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0;
+        min-height: calc(100vh - 80px);
+        transition: grid-template-columns 0.3s ease;
+      }
+
+      /* When genres panel is hidden, remove the left column and let content span full width */
+      .grid-section.collapsed {
+        grid-template-columns: 1fr;
+      }
+
+      .grid-section.collapsed .left-grid {
+        display: none;
+      }
+
+      .left-grid {
+        background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        width: 280px;
+        height: calc(100vh - 80px);
+        border-right: 2px solid #dee2e6;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+        overflow-y: auto;
+        transition: all 0.3s ease;
+      }
+
+      .left-grid.collapse:not(.show) {
+        width: 0;
+        padding: 0;
+        border: none;
+        overflow: hidden;
+      }
+
+      .left-grid h5 {
+        color: #667eea;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+      }
+
+      .genre-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .genre-list li {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        background-color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border-left: 3px solid transparent;
+      }
+
+      .genre-list li:hover {
+        background-color: #667eea;
+        color: white;
+        border-left-color: #764ba2;
+        transform: translateX(5px);
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+      }
+
+      .right-grid {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        padding: 2rem;
+        overflow-y: auto;
+        height: calc(100vh - 80px);
+      }
+
+      .right-grid h2 {
+        color: #333;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Search Container */
+      .search-container {
+        margin-bottom: 2rem;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .search-container .form-control {
+        border-radius: 25px;
+        padding: 0.75rem 1.5rem;
+        border: 2px solid #667eea;
+        font-size: 1rem;
+      }
+
+      .search-container .form-control:focus {
+        box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        border-color: #764ba2;
+      }
+
+      .search-container .btn {
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        color: white;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .search-container .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      /* Movie Cards Display */
+      .display-movies {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .movie-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .movie-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+      }
+
+      .movie-card img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+      }
+
+      .movie-card-content {
+        padding: 1rem;
+      }
+
+      .movie-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+        text-align: center;
+        line-height: 1.4;
+        min-height: 2.8rem;
+        display: -webkit-box;
+        -webkit-line-clamp:2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .search-info {
+        text-align: center;
+        padding: 2rem;
+        color: #667eea;
+        font-size: 1.1rem;
+      }
+
+      .error-message {
+        background: #ffe6e6;
+        color: #d63031;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 1rem;
+      }
+
+      .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+      }
+
+      .spinner-border {
+        color: #667eea;
+      }
+
+      @media (max-width: 768px) {
+        .display-movies {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1.25rem;
+        }
+
+        .movie-card img {
+          height: 230px;
+        }
+
+        .movie-card-content {
+          padding: 0.75rem;
+        }
+
+        .movie-title {
+          font-size: 0.9rem;
+        }
+
+        .filter-section {
+          flex-direction: row;
+          justify-content: center;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .filter-section label {
+          font-size: 0.9rem;
+          align-self: center;
+        }
+
+        .filter-section .badge {
+          font-size: 0.75rem;
+          padding: 6px 10px;
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 576px) {
+        .display-movies {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+        }
+
+        .movie-card img {
+          height: 250px;
+        }
+
+        .movie-title {
+          font-size: 0.85rem;
+        }
+      }
+
+      .filter-section {
+        display: flex;
+        gap: 10px;
+        justify-content: space-evenly;
+      }
+      .filter-section .badge {
+        font-size: 0.9rem;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 600;
+      }
+
+      .filter-section .badge:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      .filter-section .badge.active-filter {
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+        transform: translateY(-1px);
+        border: 1px solid #667eea;
+      }
+      .filter-section label {
+        font-weight: 600;
+        color: #333;
+        text-decoration: underline;
+      }
+
+      /* VIBRANT DARK THEME */
+      body.dark-theme {
+        background: radial-gradient(
+          circle at top left,
+          #020617 0%,
+          #020617 45%,
+          #020617 100%
+        );
+        color: #e5e7eb;
+      }
+
+      body.dark-theme #title-navbar {
+        background: linear-gradient(
+          135deg,
+          rgba(15, 23, 42, 0.98),
+          rgba(17, 24, 39, 0.98)
+        );
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.7);
+      }
+
+      body.dark-theme .navbar-brand {
+        color: #a855f7;
+      }
+
+      body.dark-theme .navbar-brand svg {
+        fill: #a855f7;
+        color: white;
+      }
+
+      body.dark-theme .nav-tabs .nav-link {
+        color: #9ca3af;
+      }
+
+      body.dark-theme .nav-tabs .nav-link:hover {
+        background-color: rgba(148, 163, 184, 0.15);
+        color: #e5e7eb;
+      }
+
+      body.dark-theme .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        color: #f9fafb;
+      }
+
+      body.dark-theme .theme-dropdown .btn {
+        background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+      }
+
+      body.dark-theme .left-grid {
+        background: radial-gradient(
+          circle at top,
+          #020617 0%,
+          #020617 40%,
+          #0b1120 100%
+        );
+        border-right-color: rgba(148, 163, 184, 0.3);
+        box-shadow: 2px 0 18px rgba(15, 23, 42, 0.9);
+      }
+
+      body.dark-theme .left-grid h5 {
+        color: #a855f7;
+      }
+
+      body.dark-theme .genre-list li {
+        background-color: rgba(15, 23, 42, 0.85);
+        color: #e5e7eb;
+        border-left-color: transparent;
+      }
+
+      body.dark-theme .genre-list li:hover {
+        background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+        box-shadow: 0 12px 35px rgba(56, 189, 248, 0.3);
+      }
+
+      body.dark-theme .right-grid {
+        background: radial-gradient(
+          circle at top right,
+          #020617 0%,
+          #020617 40%,
+          #020617 100%
+        );
+      }
+
+      body.dark-theme .search-container .form-control {
+        background-color: rgba(15, 23, 42, 0.9);
+        border-color: #6366f1;
+        color: #e5e7eb;
+      }
+
+      body.dark-theme .search-container .form-control::placeholder {
+        color: #e7e7e7;
+      }
+
+      body.dark-theme .search-container .btn {
+        background: linear-gradient(
+          135deg,
+          #6366f1 0%,
+          #f97316 50%,
+          #ec4899 100%
+        );
+        box-shadow: 0 10px 25px rgba(56, 189, 248, 0.4);
+      }
+
+      body.dark-theme .display-movies {
+        gap: 1.75rem;
+      }
+
+      body.dark-theme .movie-card {
+        background: radial-gradient(
+          circle at top left,
+          #020617 0%,
+          #020617 45%,
+          #020617 100%
+        );
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(59, 130, 246, 0.35);
+      }
+
+      body.dark-theme .movie-card:hover {
+        box-shadow: 0 25px 60px rgba(56, 189, 248, 0.45);
+      }
+
+      body.dark-theme .movie-title {
+        color: #e5e7eb;
+      }
+
+      body.dark-theme .search-info {
+        color: #93c5fd;
+      }
+
+      body.dark-theme .error-message {
+        background: rgba(248, 113, 113, 0.12);
+        color: #fecaca;
+        border: 1px solid rgba(248, 113, 113, 0.6);
+      }
+
+      body.dark-theme .filter-section label {
+        color: #e5e7eb;
+      }
+
+      body.dark-theme .filter-section .badge {
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.9);
+      }
+
+      body.dark-theme .filter-section .badge.active-filter {
+        border-color: #f97316;
+      }
+
+      body.dark-theme .spinner-border {
+        color: #6366f1;
+      }
+
+      body.dark-theme .navbar-brand h1 {
+        color: white;
+        margin: 0;
+        font-size: 2rem;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      .navbar-brand h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-family: "Courier New", Courier, monospace;
+      }
+
+      /* Make mobile navbar toggler icon visible in dark mode */
+      body.dark-theme .navbar-toggler {
+        border-color: rgba(248, 250, 252, 0.6);
+      }
+
+      body.dark-theme .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-md" id="title-navbar">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            fill="currentColor"
+            class="bi bi-film"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1zm4 0v6h8V1zm8 8H4v6h8zM1 1v2h2V1zm2 3H1v2h2zM1 7v2h2V7zm2 3H1v2h2zm-2 3v2h2v-2zM15 1h-2v2h2zm-2 3v2h2V4zm2 3h-2v2h2zm-2 3v2h2v-2zm2 3h-2v2h2z"
+            />
+          </svg>
+          <h1>MovieBix</h1>
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarContent"
+          aria-controls="navbarContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarContent">
+          <ul class="nav nav-tabs ms-auto">
+            <li class="nav-item">
+              <a
+                class="nav-link active"
+                data-bs-toggle="collapse"
+                href="#genresPanel"
+                role="button"
+                aria-expanded="true"
+                aria-controls="genresPanel"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  class="bi bi-grid-3x3-gap-fill me-2"
+                  viewBox="0 0 16 16"
+                >
+                  <path
+                    d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1z"
+                  />
+                </svg>
+                Genres
+              </a>
+            </li>
+          </ul>
+
+          <div class="dropdown theme-dropdown ms-md-3">
+            <button
+              class="btn btn-secondary dropdown-toggle"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-palette-fill me-2"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M12.433 10.07C14.133 10.585 16 11.15 16 8a8 8 0 1 0-8 8c1.996 0 1.826-1.504 1.649-3.08-.124-1.101-.252-2.237.351-2.92.465-.527 1.42-.237 2.433.07M8 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m4.5 3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3M5 6.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m.5 6.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"
+                />
+              </svg>
+              Theme
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="#" data-theme="light"
+                  >☀️ Light</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" data-theme="dark">🌙 Dark</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="grid-section">
+      <section class="left-grid collapse show" id="genresPanel">
+        <h5>Movie Genres</h5>
+        <ul class="genre-list">
+          <li>🎬 Action</li>
+          <li>😂 Comedy</li>
+          <li>💕 Romance</li>
+          <li>😱 Horror</li>
+          <li>🚀 Sci-Fi</li>
+          <li>🎭 Drama</li>
+          <li>🔍 Thriller</li>
+          <li>🏰 Fantasy</li>
+          <li>🌍 Adventure</li>
+          <li>🎨 Animation</li>
+        </ul>
+      </section>
+
+      <section class="right-grid">
+        <div class="container-fluid">
+          <div class="search-container">
+            <form class="d-flex" role="search" id="searchForm">
+              <input
+                class="form-control me-2"
+                type="search"
+                id="movieSearch"
+                placeholder="Search for a movie..."
+                aria-label="Search"
+                autocomplete="off"
+                required
+              />
+              <button class="btn" type="submit">Search</button>
+            </form>
+          </div>
+
+          <div class="filter-section mt-2 mb-4">
+            <label>Search By:-</label>
+            <span
+              class="badge rounded-pill text-bg-secondary px-4 py-2 active-filter"
+              data-search-type="title"
+              >Title</span
+            >
+            <span
+              class="badge rounded-pill text-bg-danger px-4 py-2"
+              data-search-type="actor"
+              >Actor</span
+            >
+            <span
+              class="badge rounded-pill text-bg-success px-4 py-2"
+              data-search-type="director"
+              >Director</span
+            >
+            <span
+              class="badge rounded-pill text-bg-primary px-4 py-2"
+              data-search-type="timeline"
+              >Timeline</span
+            >
+          </div>
+
+          <!-- Display the top 10 movies after the search button is clicked -->
+          <div id="resultsContainer">
+            <div class="search-info">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="64"
+                height="64"
+                fill="currentColor"
+                class="bi bi-search mb-3"
+                viewBox="0 0 16 16"
+              >
+                <path
+                  d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"
+                />
+              </svg>
+              <p>Search for a movie to get personalized recommendations!</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+      let currentSearchType = "title";
+
+      // Adjust layout when Genres panel is shown/hidden, wire filters, and handle theme
+      document.addEventListener("DOMContentLoaded", function () {
+        const gridSection = document.querySelector(".grid-section");
+        const genresPanel = document.getElementById("genresPanel");
+        const searchInput = document.getElementById("movieSearch");
+        const themeItems = document.querySelectorAll(
+          ".theme-dropdown .dropdown-item"
+        );
+
+        // THEME HANDLING
+        function applyTheme(theme) {
+          if (theme === "dark") {
+            document.body.classList.add("dark-theme");
+          } else {
+            document.body.classList.remove("dark-theme");
+          }
+          localStorage.setItem("moviebix-theme", theme);
+        }
+
+        const savedTheme = localStorage.getItem("moviebix-theme") || "light";
+        applyTheme(savedTheme);
+
+        themeItems.forEach((item) => {
+          item.addEventListener("click", (e) => {
+            e.preventDefault();
+            const theme = item.getAttribute("data-theme") || "light";
+            applyTheme(theme);
+          });
+        });
+
+        if (gridSection && genresPanel) {
+          // Initial state on load
+          if (!genresPanel.classList.contains("show")) {
+            gridSection.classList.add("collapsed");
+          }
+
+          genresPanel.addEventListener("shown.bs.collapse", function () {
+            gridSection.classList.remove("collapsed");
+          });
+
+          genresPanel.addEventListener("hidden.bs.collapse", function () {
+            gridSection.classList.add("collapsed");
+          });
+        }
+
+        // Filter badges click behaviour
+        const filterBadges = document.querySelectorAll(
+          ".filter-section .badge"
+        );
+        filterBadges.forEach((badge) => {
+          badge.addEventListener("click", () => {
+            filterBadges.forEach((b) => b.classList.remove("active-filter"));
+            badge.classList.add("active-filter");
+            currentSearchType =
+              badge.getAttribute("data-search-type") || "title";
+
+            // Update placeholder for clarity
+            switch (currentSearchType) {
+              case "actor":
+                searchInput.placeholder =
+                  "Search by actor (e.g., Daniel Craig)...";
+                break;
+              case "director":
+                searchInput.placeholder =
+                  "Search by director (e.g., Christopher Nolan)...";
+                break;
+              case "genre":
+                searchInput.placeholder = "Search by genre (e.g., Action)...";
+                break;
+              case "timeline":
+                searchInput.placeholder =
+                  "Search by year range (e.g., 2000-2010)...";
+                break;
+              default:
+                searchInput.placeholder = "Search for a movie...";
+            }
+          });
+        });
+
+        // Make left genre list clickable for genre search
+        const genreItems = document.querySelectorAll(".genre-list li");
+        const filterBadgesNodeList = document.querySelectorAll(
+          ".filter-section .badge"
+        );
+        genreItems.forEach((item) => {
+          item.addEventListener("click", () => {
+            const text = item.textContent.replace(/^[^A-Za-z]+/, "").trim();
+            currentSearchType = "genre";
+            filterBadgesNodeList.forEach((b) =>
+              b.classList.remove("active-filter")
+            );
+            const genreBadge = document.querySelector(
+              '.filter-section .badge[data-search-type="genre"]'
+            );
+            if (genreBadge) genreBadge.classList.add("active-filter");
+            searchInput.value = text;
+            searchInput.placeholder = "Search by genre (e.g., Action)...";
+            document
+              .getElementById("searchForm")
+              .dispatchEvent(new Event("submit"));
+          });
+        });
+      });
+
+      // Handle movie search
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const movieName = document.getElementById("movieSearch").value.trim();
+          const resultsContainer = document.getElementById("resultsContainer");
+
+          if (!movieName) {
+            resultsContainer.innerHTML =
+              '<div class="error-message">Please enter a value to search</div>';
+            return;
+          }
+
+          // Show loading spinner
+          resultsContainer.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Finding recommendations for "${movieName}"...</p>
+                </div>
+            `;
+
+          try {
+            const response = await fetch("/search", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                movie_name: movieName,
+                search_type: currentSearchType,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              displayRecommendations(
+                data.recommendations,
+                data.search_query,
+                data.search_type || currentSearchType
+              );
+            } else {
+              resultsContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
+            }
+          } catch (error) {
+            resultsContainer.innerHTML = `<div class="error-message">An error occurred. Please try again.</div>`;
+            console.error("Error:", error);
+          }
+        });
+
+      function displayRecommendations(movies, searchQuery, searchType) {
+        const resultsContainer = document.getElementById("resultsContainer");
+
+        if (!movies || movies.length === 0) {
+          resultsContainer.innerHTML =
+            '<div class="search-info">No recommendations found</div>';
+          return;
+        }
+
+        let heading = "";
+        switch (searchType) {
+          case "actor":
+            heading = `Top movies featuring "${searchQuery}"`;
+            break;
+          case "director":
+            heading = `Top movies directed by "${searchQuery}"`;
+            break;
+          case "genre":
+            heading = `Top movies in genre "${searchQuery}"`;
+            break;
+          case "timeline":
+            heading = `Top movies released in "${searchQuery}"`;
+            break;
+          default:
+            heading = `Top 10 Movies Similar to "${searchQuery}"`;
+        }
+
+        let html = `
+                <div class="search-info mb-4">
+                    <h4>${heading}</h4>
+                </div>
+                <div class="display-movies">
+            `;
+
+        movies.forEach((movie) => {
+          html += `
+                    <div class="movie-card">
+                        <img src="${movie.poster}" alt="${movie.title}" onerror="this.src='https://via.placeholder.com/500x750/667eea/ffffff?text=No+Poster'">
+                        <div class="movie-card-content">
+                            <h5 class="movie-title">${movie.title}</h5>
+                        </div>
+                    </div>
+                `;
+        });
+
+        html += "</div>";
+        resultsContainer.innerHTML = html;
+      }
+    </script>
+  </body>
+</html>
