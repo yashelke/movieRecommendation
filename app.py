@@ -30,8 +30,8 @@ def _normalize_title(s: str) -> str:
 new_features["normalized_title"] = new_features["title"].apply(_normalize_title)
 
 # OMDB API Configuration (get your key from https://www.omdbapi.com/apikey.aspx)
-# OMDB_API_KEY =  
-# OMDB_API_URL = 
+OMDB_API_KEY =  "6ac1a66a"
+OMDB_API_URL = "http://www.omdbapi.com/"
 
 
 def get_movie_poster(movie_title):
