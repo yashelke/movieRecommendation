@@ -5,8 +5,13 @@ from pickle import load
 import requests
 import pandas as pd
 import re
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+
+# Load environment variables from .env file (including OMDB_API_KEY)
+load_dotenv()
 
 # Load the movie recommendation model
 with open("movieModel.pkl", "rb") as f:
@@ -29,8 +34,10 @@ def _normalize_title(s: str) -> str:
 
 new_features["normalized_title"] = new_features["title"].apply(_normalize_title)
 
-# OMDB API Configuration (get your key from https://www.omdbapi.com/apikey.aspx)
-OMDB_API_KEY =  "6ac1a66a"
+# OMDB API Configuration
+# Set OMDB_API_KEY in your .env file as:
+# OMDB_API_KEY=your_real_key_here
+OMDB_API_KEY = os.getenv("OMDB_API_KEY", "")
 OMDB_API_URL = "http://www.omdbapi.com/"
 
 
