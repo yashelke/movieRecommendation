@@ -6,7 +6,9 @@ import requests
 import pandas as pd
 import re
 import os
+import ast
 from dotenv import load_dotenv
+from difflib import SequenceMatcher
 
 app = Flask(__name__)
 
@@ -33,6 +35,98 @@ def _normalize_title(s: str) -> str:
     return re.sub(r"\s+", " ", s).strip()
 
 new_features["normalized_title"] = new_features["title"].apply(_normalize_title)
+
+
+def _normalize_name(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(name).lower())
+
+
+def _best_suggestions(query: str, candidates, min_ratio: float = 0.45, limit: int = 5):
+    q = _normalize_name(query)
+    scored = []
+    for display, norm in candidates:
+        if not norm:
+            continue
+        # prioritize substring containment
+        if q and q in norm:
+            score = 1.0
+        else:
+            score = SequenceMatcher(None, q, norm).ratio()
+        scored.append((display, score))
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return [d for d, s in scored if s >= min_ratio][:limit]
+
+
+def _build_actor_index():
+    actors = []
+    mapping = {}
+    seen = set()
+    for idx, row in data.iterrows():
+        try:
+            cast_list = ast.literal_eval(row.get('cast', '[]'))
+            for actor in cast_list[:3]:
+                name = actor.get('name', '').strip()
+                norm = _normalize_name(name)
+                if not name or not norm:
+                    continue
+                mapping.setdefault(norm, []).append(idx)
+                if norm not in seen:
+                    actors.append((name, norm))
+                    seen.add(norm)
+        except Exception:
+            continue
+    return actors, mapping
+
+
+def _build_director_index():
+    directors = []
+    mapping = {}
+    seen = set()
+    for idx, row in data.iterrows():
+        try:
+            crew_list = ast.literal_eval(row.get('crew', '[]'))
+            for crew in crew_list:
+                if crew.get('job') == 'Director':
+                    name = crew.get('name', '').strip()
+                    norm = _normalize_name(name)
+                    if not name or not norm:
+                        break
+                    mapping.setdefault(norm, []).append(idx)
+                    if norm not in seen:
+                        directors.append((name, norm))
+                        seen.add(norm)
+                    break
+        except Exception:
+            continue
+    return directors, mapping
+
+
+def _build_genre_index():
+    genres = []
+    mapping = {}
+    seen = set()
+    for idx, row in data.iterrows():
+        try:
+            genre_list = ast.literal_eval(row.get('genres', '[]'))
+            for g in genre_list:
+                name = g.get('name', '').strip()
+                norm = _normalize_name(name)
+                if not name or not norm:
+                    continue
+                mapping.setdefault(norm, []).append(idx)
+                if norm not in seen:
+                    genres.append((name, norm))
+                    seen.add(norm)
+        except Exception:
+            continue
+    return genres, mapping
+
+
+# Precompute candidate lists and exact maps
+_title_candidates = [(row.title, row.normalized_title) for _, row in new_features.iterrows()]
+_actor_candidates, _actor_map = _build_actor_index()
+_director_candidates, _director_map = _build_director_index()
+_genre_candidates, _genre_map = _build_genre_index()
 
 # OMDB API Configuration
 # Set OMDB_API_KEY in your .env file as:
@@ -75,11 +169,13 @@ def recommend_movies(movie_title):
         # Normalize the input title to match against precomputed normalized titles
         normalized_query = _normalize_title(movie_title)
 
-        # Find the movie index using normalized titles so that queries like
-        # "Mission Impossible rogue nation" still match
+        # Exact match only
         movie_index = new_features[new_features["normalized_title"] == normalized_query].index
-        
+
         if len(movie_index) == 0:
+            suggestions = _best_suggestions(normalized_query, _title_candidates, min_ratio=0.45, limit=5)
+            if suggestions:
+                return {"type": "suggestions", "suggestions": suggestions}
             return None
         
         movie_index = movie_index[0]
@@ -104,10 +200,8 @@ def recommend_movies(movie_title):
 def recommend_by_actor(actor_name):
     """Return movies where the given actor appears (top 10)."""
     try:
-        actor_key = actor_name.replace(" ", "").lower()
-        movie_indices = new_features[
-            new_features["tags"].str.contains(actor_key, case=False, regex=False)
-        ].index.tolist()
+        actor_norm = _normalize_name(actor_name)
+        movie_indices = _actor_map.get(actor_norm, [])
 
         movies = []
         for idx in movie_indices[:10]:
@@ -116,7 +210,14 @@ def recommend_by_actor(actor_name):
                 "title": title,
                 "poster": get_movie_poster(title)
             })
-        return movies
+
+        if movies:
+            return movies
+
+        suggestions = _best_suggestions(actor_name, _actor_candidates, min_ratio=0.4, limit=5)
+        if suggestions:
+            return {"type": "suggestions", "suggestions": suggestions}
+        return None
     except Exception as e:
         print(f"Error in recommend_by_actor: {e}")
         return None
@@ -125,10 +226,8 @@ def recommend_by_actor(actor_name):
 def recommend_by_director(director_name):
     """Return movies directed by the given director (top 10)."""
     try:
-        director_key = director_name.replace(" ", "").lower()
-        movie_indices = new_features[
-            new_features["tags"].str.contains(director_key, case=False, regex=False)
-        ].index.tolist()
+        director_norm = _normalize_name(director_name)
+        movie_indices = _director_map.get(director_norm, [])
 
         movies = []
         for idx in movie_indices[:10]:
@@ -137,7 +236,14 @@ def recommend_by_director(director_name):
                 "title": title,
                 "poster": get_movie_poster(title)
             })
-        return movies
+
+        if movies:
+            return movies
+
+        suggestions = _best_suggestions(director_name, _director_candidates, min_ratio=0.4, limit=5)
+        if suggestions:
+            return {"type": "suggestions", "suggestions": suggestions}
+        return None
     except Exception as e:
         print(f"Error in recommend_by_director: {e}")
         return None
@@ -146,10 +252,8 @@ def recommend_by_director(director_name):
 def recommend_by_genre(genre_name):
     """Return movies for a given genre keyword (top 10)."""
     try:
-        genre_key = genre_name.replace(" ", "").lower()
-        movie_indices = new_features[
-            new_features["tags"].str.contains(genre_key, case=False, regex=False)
-        ].index.tolist()
+        genre_norm = _normalize_name(genre_name)
+        movie_indices = _genre_map.get(genre_norm, [])
 
         movies = []
         for idx in movie_indices[:10]:
@@ -158,7 +262,14 @@ def recommend_by_genre(genre_name):
                 "title": title,
                 "poster": get_movie_poster(title)
             })
-        return movies
+
+        if movies:
+            return movies
+
+        suggestions = _best_suggestions(genre_name, _genre_candidates, min_ratio=0.4, limit=5)
+        if suggestions:
+            return {"type": "suggestions", "suggestions": suggestions}
+        return None
     except Exception as e:
         print(f"Error in recommend_by_genre: {e}")
         return None
@@ -226,6 +337,16 @@ def search():
 
         else:
             return jsonify({'error': 'Invalid search type'}), 400
+
+        if isinstance(recommendations, dict) and recommendations.get("type") == "suggestions":
+            sug_list = recommendations.get('suggestions', []) or []
+            human = "Did you mean? " + ", ".join(sug_list) if sug_list else "No close matches found"
+            return jsonify({
+                'suggestions': sug_list,
+                'error': human,  # backward compatibility to avoid undefined on UI
+                'search_query': movie_name,
+                'search_type': search_type
+            }), 404
 
         if not recommendations:
             return jsonify({'error': error_message}), 404

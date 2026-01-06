@@ -1043,7 +1043,22 @@
                 data.search_type || currentSearchType
               );
             } else {
-              resultsContainer.innerHTML = `<div class="error-message">${data.error}</div>`;
+              const suggestions = Array.isArray(data.suggestions)
+                ? data.suggestions.filter(Boolean)
+                : [];
+
+              if (suggestions.length) {
+                const list = suggestions
+                  .map((s) => `<li class="list-group-item">${s}</li>`)
+                  .join("");
+                resultsContainer.innerHTML = `
+                  <div class="error-message text-start">
+                    <div class="mb-2 fw-bold">Did you mean?</div>
+                    <ul class="list-group">${list}</ul>
+                  </div>`;
+              } else {
+                resultsContainer.innerHTML = `<div class="error-message">${data.error || 'No results found'}</div>`;
+              }
             }
           } catch (error) {
             resultsContainer.innerHTML = `<div class="error-message">An error occurred. Please try again.</div>`;
